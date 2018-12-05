@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>ch.frankel.cloudstack.api</groupId>
-        <artifactId>cloudstack-parent</artifactId>
+        <groupId>com.exoscale.api</groupId>
+        <artifactId>exoscale-java</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>cloudstack-maven-plugin</artifactId>
+    <artifactId>cloudstack-maven-plugin2</artifactId>
     <packaging>maven-plugin</packaging>
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>

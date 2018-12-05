@@ -3,12 +3,9 @@ package ch.frankel.cloudstack.plugin
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.Paths
 
-class GenerateAPI(version: String) {
-
-    private val baseUrl = "http://cloudstack.apache.org/api/apidocs-$version/index.html"
+class GenerateAPI(private val url: String) {
 
     val categories: List<GeneratedCategory> by lazy {
         document.select("div.apismallbullet_box")
@@ -16,7 +13,7 @@ class GenerateAPI(version: String) {
     }
 
     private val document: Document by lazy {
-        Jsoup.connect(baseUrl).get()
+        Jsoup.connect(url).get()
     }
 }
 

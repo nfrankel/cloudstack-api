@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>ch.frankel.cloudstack.api</groupId>
-    <artifactId>cloudstack-parent</artifactId>
+    <groupId>com.exoscale.api</groupId>
+    <artifactId>exoscale-java</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>cloudstack-maven-plugin</module>
-        <module>cloudstack-api</module>
+        <module>cloudstack-maven-plugin2</module>
+        <module>exoscale-api</module>
     </modules>
     <properties>
         <kotlin.version>1.2.31</kotlin.version>

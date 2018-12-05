@@ -1,6 +1,6 @@
-package ch.frankel.cloudstack.api
+package com.exoscale.api
 
-import ch.frankel.cloudstack.api.Output.JSON
+import com.exoscale.api.Output.JSON
 import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.core.Request
 import com.github.kittinunf.fuel.core.Response
