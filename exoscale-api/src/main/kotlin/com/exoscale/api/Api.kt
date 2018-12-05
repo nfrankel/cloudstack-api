@@ -18,17 +18,18 @@ enum class Output(val type: String) {
     JSON("json"), XML("xml")
 }
 
-abstract class Command(val commandId: String, val parameters: Map<String, String>)
+interface Command {
+    val commandId: String
+}
 
-class Client(private val baseUrl: String, private val apiKey: String, private val apiSecret: String) {
+class Execute(private val baseUrl: String, private val apiKey: String, private val apiSecret: String) {
 
     private val hmac = Mac.getInstance(HMAC_SHA1).apply {
         init(SecretKeySpec(apiSecret.encode(), HMAC_SHA1))
     }
 
-    fun execute(command: Command, output: Output = JSON): Triple<Request, Response, Result<String, FuelError>> {
+    operator fun invoke(command: Command, output: Output = JSON): Triple<Request, Response, Result<String, FuelError>> {
         val parametersMap = mapOf("command" to command.commandId, "response" to output.type, "apikey" to apiKey)
-                .plus(command.parameters)
                 .plus(command::class.declaredMemberProperties.associateBy(
                         { it.name },
                         { it.getter.call(command) as String }

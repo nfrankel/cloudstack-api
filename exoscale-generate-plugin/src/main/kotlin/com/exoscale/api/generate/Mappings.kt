@@ -10,19 +10,27 @@ import kotlin.reflect.KClass
 const val PACKAGE_NAME = "com.exoscale.api"
 
 fun JSONObject.toSpec(): FileSpec {
-    val className = getString("name").capitalize()
-    val parameters = if (has("params")) getJSONArray("params")
+    val name = getString("name")
+    val className = name.capitalize()
+    val constructorParameters: List<ParameterSpec> = if (has("params")) getJSONArray("params")
         .sortedByDescending { (it as JSONObject).getBoolean("required") }
         .map { (it as JSONObject).toParameterSpec() }
     else arrayListOf()
     val constructor = FunSpec.constructorBuilder()
-        .addParameters(parameters)
+        .addParameters(constructorParameters)
         .build()
-    val type = TypeSpec.classBuilder(className)
+    val commandSupertype = ClassName(PACKAGE_NAME, "Command")
+    val commandIdProperty = PropertySpec.builder("commandId", String::class.asTypeName())
+        .addModifiers(KModifier.OVERRIDE)
+        .initializer("\"$name\"")
+        .build()
+    val commandType = TypeSpec.classBuilder(className)
+        .addSuperinterface(commandSupertype)
         .primaryConstructor(constructor)
+        .addProperty(commandIdProperty)
         .build()
     return FileSpec.builder(PACKAGE_NAME, className)
-        .addType(type)
+        .addType(commandType)
         .build()
 }
 

@@ -1,6 +1,5 @@
 package com.exoscale.api.generate
 
-import com.squareup.kotlinpoet.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
