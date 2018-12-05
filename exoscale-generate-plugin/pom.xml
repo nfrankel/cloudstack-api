@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.exoscale.api</groupId>
         <artifactId>exoscale-java</artifactId>
+        <groupId>com.exoscale.api</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>cloudstack-maven-plugin2</artifactId>
+    <artifactId>exoscale-generate-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
@@ -45,8 +45,14 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20180813</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup</groupId>
+            <artifactId>kotlinpoet</artifactId>
+            <version>1.0.0-RC3</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
