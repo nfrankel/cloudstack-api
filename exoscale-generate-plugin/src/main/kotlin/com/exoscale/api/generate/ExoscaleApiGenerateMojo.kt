@@ -8,7 +8,7 @@ import java.io.File
 
 
 @Mojo(name = "generate", defaultPhase = GENERATE_SOURCES)
-class CloudStackGenerateMojo : AbstractMojo() {
+class ExoscaleApiGenerateMojo : AbstractMojo() {
 
     @Parameter(defaultValue = "\${project.build.directory}", readonly = true)
     private val buildDirectory: File? = null
