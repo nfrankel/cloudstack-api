@@ -12,17 +12,15 @@ import javax.crypto.spec.*
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.text.Charsets.UTF_8
 
-private const val HMAC_SHA1 = "HmacSHA1"
-
 enum class Output(val type: String) {
     JSON("json"), XML("xml")
 }
 
-interface Command {
-    val commandId: String
-}
+class Execute internal constructor (internal val baseUrl: String,
+                                    internal val apiKey: String,
+                                    internal val apiSecret: String) {
 
-class Execute(private val baseUrl: String, private val apiKey: String, private val apiSecret: String) {
+    private val HMAC_SHA1 = "HmacSHA1"
 
     private val hmac = Mac.getInstance(HMAC_SHA1).apply {
         init(SecretKeySpec(apiSecret.encode(), HMAC_SHA1))
