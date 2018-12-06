@@ -1,36 +1,110 @@
 package com.exoscale.api.generate
 
 import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.KModifier.LATEINIT
+import com.squareup.kotlinpoet.KModifier.OVERRIDE
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import org.json.JSONObject
 import java.time.ZonedDateTime
 import java.util.*
 import kotlin.reflect.KClass
 
-const val PACKAGE_NAME = "com.exoscale.api"
+private const val PACKAGE_NAME = "com.exoscale.api"
 
-fun JSONObject.toSpec(): FileSpec {
-    val name = getString("name")
-    val className = name.capitalize()
-    val constructorParameters: List<ParameterSpec> = if (has("params")) getJSONArray("params")
-        .sortedByDescending { (it as JSONObject).getBoolean("required") }
-        .map { (it as JSONObject).toParameterSpec() }
+private const val NAME_KEY = "name"
+private const val PARAMS_KEY = "params"
+private const val COUNT_KEY = "count"
+private const val REQUIRED_KEY = "required"
+private const val RESPONSE_KEY = "response"
+
+private const val COMMAND_ID_ATTR_NAME = "commandId"
+private const val RESULT_TYPE_ATTR_NAME = "resultType"
+
+private const val LIST_COMMAND_PREFIX = "list"
+private const val COMMAND_CLASS_NAME_SUFFIX = "Command"
+private const val RESULT_CLASS_NAME_SUFFIX = "Result"
+
+fun JSONObject.toCommandSpec(): FileSpec {
+    val constructorParameters: List<ParameterSpec> = if (has(PARAMS_KEY)) {
+        getJSONArray(PARAMS_KEY)
+            .map { it as JSONObject }
+            .sortedByDescending { it.isRequired }
+            .map { it.toCommandParameterSpec() }
+    } else arrayListOf()
+    val constructor = FunSpec.constructorBuilder()
+        .addParameters(constructorParameters)
+        .build()
+    val resultType = ClassName(PACKAGE_NAME, resultClassName)
+    val commandSupertype = ClassName(PACKAGE_NAME, COMMAND_CLASS_NAME_SUFFIX).parameterizedBy(resultType)
+    val commandIdProperty = PropertySpec.builder(COMMAND_ID_ATTR_NAME, String::class.asTypeName())
+        .addModifiers(OVERRIDE)
+        .initializer("\"$name\"")
+        .build()
+    val resultTypeProperty = PropertySpec.builder(RESULT_TYPE_ATTR_NAME, Class::class.asTypeName().parameterizedBy(resultType))
+        .addModifiers(OVERRIDE)
+        .initializer("${resultType.canonicalName}::class.java")
+        .build()
+    val commandType = TypeSpec.classBuilder(name.capitalize())
+        .addSuperinterface(commandSupertype)
+        .primaryConstructor(constructor)
+        .addProperty(commandIdProperty)
+        .addProperty(resultTypeProperty)
+        .build()
+    return FileSpec.builder(PACKAGE_NAME, name.capitalize())
+        .addType(commandType)
+        .build()
+}
+
+fun JSONObject.toResultSpec(): FileSpec {
+    return if (hasListResult) toListResultSpec()
+    else toSingleResultSpec()
+}
+
+fun JSONObject.toListResultSpec(): FileSpec {
+    val itemName = name.substring(LIST_COMMAND_PREFIX.length, name.length - 1)
+    val itemClassName = ClassName(PACKAGE_NAME, itemName)
+    val resultType = TypeSpec.classBuilder(resultClassName)
+        .addSuperinterface(ClassName(PACKAGE_NAME, RESULT_CLASS_NAME_SUFFIX))
+        .addProperty(PropertySpec
+            .builder("${name}response".toLowerCase(), ClassName(PACKAGE_NAME, "${name}Response"))
+            .addModifiers(LATEINIT)
+            .mutable()
+            .build())
+        .build()
+    val collectionProp = PropertySpec.builder(itemName, List::class.asClassName().parameterizedBy(itemClassName))
+        .mutable()
+        .addModifiers(LATEINIT)
+        .build()
+    val properties: List<PropertySpec> = if (has(RESPONSE_KEY)) getJSONArray(RESPONSE_KEY)
+        .map { (it as JSONObject).toItemResultPropertySpec() }
+    else arrayListOf()
+    val listResponseType = TypeSpec.classBuilder(ClassName(PACKAGE_NAME, "${name}Response"))
+        .addProperty(PropertySpec.builder(COUNT_KEY, Int::class).mutable().initializer("0").build())
+        .addProperty(collectionProp)
+        .build()
+    val itemResultType = TypeSpec.classBuilder(itemClassName)
+        .addProperties(properties)
+        .build()
+    return FileSpec.builder(PACKAGE_NAME, resultClassName)
+        .addType(resultType)
+        .addType(listResponseType)
+        .addType(itemResultType)
+        .build()
+}
+
+fun JSONObject.toSingleResultSpec(): FileSpec {
+    val constructorParameters: List<ParameterSpec> = if (has(RESPONSE_KEY)) getJSONArray(RESPONSE_KEY)
+        .map { (it as JSONObject).toCommandParameterSpec() }
     else arrayListOf()
     val constructor = FunSpec.constructorBuilder()
         .addParameters(constructorParameters)
         .build()
-    val commandSupertype = ClassName(PACKAGE_NAME, "Command")
-    val commandIdProperty = PropertySpec.builder("commandId", String::class.asTypeName())
-        .addModifiers(KModifier.OVERRIDE)
-        .initializer("\"$name\"")
-        .build()
-    val commandType = TypeSpec.classBuilder(className)
-        .addSuperinterface(commandSupertype)
+    val resultType = TypeSpec.classBuilder(resultClassName)
+        .addSuperinterface(ClassName(PACKAGE_NAME, "Result"))
         .primaryConstructor(constructor)
-        .addProperty(commandIdProperty)
         .build()
-    return FileSpec.builder(PACKAGE_NAME, className)
-        .addType(commandType)
+    return FileSpec.builder(PACKAGE_NAME, resultClassName)
+        .addType(resultType)
         .build()
 }
 
@@ -52,10 +126,24 @@ private val mappings = mapOf<String, KClass<*>>(
     "short" to Short::class
 )
 
-private fun JSONObject.toParameterSpec(): ParameterSpec {
-    val required = getBoolean("required")
-    val type = computeType(required)
-    return ParameterSpec.builder(getString("name"), type).apply {
+private val JSONObject.name
+    get() = getString(NAME_KEY)
+
+private val JSONObject.resultClassName
+    get() = "${name.capitalize()}$RESULT_CLASS_NAME_SUFFIX"
+
+private val JSONObject.isRequired: Boolean
+    get() {
+        return if (has(REQUIRED_KEY)) getBoolean(REQUIRED_KEY)
+        else true
+    }
+
+private val JSONObject.hasListResult: Boolean
+    get() = name.startsWith(LIST_COMMAND_PREFIX)
+
+private fun JSONObject.toCommandParameterSpec(): ParameterSpec {
+    val type = computeParameterType()
+    return ParameterSpec.builder(getString(NAME_KEY), type).apply {
         if (type is ParameterizedTypeName) {
             when {
                 type.rawType == List::class.asTypeName() -> defaultValue("arrayListOf()")
@@ -66,14 +154,29 @@ private fun JSONObject.toParameterSpec(): ParameterSpec {
     }.build()
 }
 
-private fun JSONObject.computeType(required: Boolean): TypeName {
+private fun JSONObject.toItemResultPropertySpec(): PropertySpec {
+    val type = computePropertyType().copy()
+    return PropertySpec.builder(getString(NAME_KEY), type)
+        .mutable()
+        .initializer("null")
+        .build()
+
+}
+
+private fun JSONObject.computePropertyType(): TypeName {
+    val base: KClass<out Any> = mappings[getString("type")] ?: Nothing::class
+    return when (base) {
+        List::class, Set::class -> base.parameterizedBy(Any::class)
+        Map::class -> base.parameterizedBy(String::class, Any::class)
+        else -> base.asTypeName()
+    }.copy(true)
+}
+
+private fun JSONObject.computeParameterType(): TypeName {
     val base: KClass<out Any> = mappings[getString("type")] ?: Nothing::class
     return when (base) {
         List::class, Set::class -> base.parameterizedBy(String::class)
         Map::class -> base.parameterizedBy(String::class, String::class)
-        else -> {
-            if (required) base.asTypeName()
-            else base.asTypeName().copy(true)
-        }
+        else -> base.asTypeName().copy(!isRequired)
     }
 }

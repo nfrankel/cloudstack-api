@@ -10,13 +10,18 @@ class GenerateApi {
     fun generate(buildDir: File) {
         val rootDir = prepareFilesystem(buildDir)
         val commands = getJsonCommands()
-        commands.forEach {
-            generateClassFile(it as JSONObject, rootDir)
+        commands.forEach { it as JSONObject
+            generateCommandFile(it, rootDir)
+            generateResultFile(it, rootDir)
         }
     }
 
-    private fun generateClassFile(json: JSONObject, directory: File) = json
-        .toSpec()
+    private fun generateCommandFile(json: JSONObject, directory: File) = json
+        .toCommandSpec()
+        .writeTo(directory)
+
+    private fun generateResultFile(json: JSONObject, directory: File) = json
+        .toResultSpec()
         .writeTo(directory)
 
     private fun getJsonCommands(): JSONArray {

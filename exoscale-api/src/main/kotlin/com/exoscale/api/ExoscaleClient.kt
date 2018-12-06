@@ -1,22 +1,21 @@
 package com.exoscale.api
 
 import com.exoscale.api.Output.JSON
-import com.github.kittinunf.fuel.core.FuelError
-import com.github.kittinunf.fuel.core.Request
-import com.github.kittinunf.fuel.core.Response
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.httpGet
-import com.github.kittinunf.result.Result
 import java.util.*
-import javax.crypto.*
-import javax.crypto.spec.*
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.text.Charsets.UTF_8
 
 typealias Execute = ExoscaleClient
 
-class ExoscaleClient internal constructor (internal val baseUrl: String,
-                                           internal val apiKey: String,
-                                           internal val apiSecret: String) {
+class ExoscaleClient internal constructor(internal val baseUrl: String,
+                                          internal val apiKey: String,
+                                          internal val apiSecret: String) {
 
     private val HMAC_SHA1 = "HmacSHA1"
 
@@ -24,20 +23,31 @@ class ExoscaleClient internal constructor (internal val baseUrl: String,
         init(SecretKeySpec(apiSecret.encode(), HMAC_SHA1))
     }
 
-    operator fun invoke(command: Command, output: Output = JSON): Triple<Request, Response, Result<String, FuelError>> {
+    operator fun <R : Result> invoke(command: Command<R>, output: Output = JSON): R {
         val parametersMap = mapOf("command" to command.commandId, "response" to output.type, "apikey" to apiKey)
-                .plus(command::class.declaredMemberProperties.associateBy(
-                        { it.name },
-                        { it.getter.call(command) as String }
+            .plus(command::class.declaredMemberProperties.filter { it.name != "resultType" }
+                .associateBy(
+                    { it.name },
+                    { it.getter.call(command) as String }
                 ))
-        return baseUrl.httpGet(parametersMap.toListWithSignature()).responseString()
+        val response = baseUrl.httpGet(parametersMap.toListWithSignature())
+            .responseObject(object : ResponseDeserializable<R> {
+                override fun deserialize(content: String) =
+                    ObjectMapper().apply {
+                        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    }.readValue<R>(content, command.resultType)
+            })
+        val result = response.third
+        result.fold(
+            { return it },
+            { throw it })
     }
 
     private fun Map<String, String>.queryString(): String {
         return entries
-                .sortedBy { it.key }
-                .joinToString("&") { "${it.key}=${it.value}" }
-                .toLowerCase()
+            .sortedBy { it.key }
+            .joinToString("&") { "${it.key}=${it.value}" }
+            .toLowerCase()
     }
 
     private fun Map<String, String>.toListWithSignature(): List<Pair<String, String>> {
