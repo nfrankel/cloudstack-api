@@ -1,0 +1,19 @@
+defaultaccount = "john.doe@exoscale.com"
+
+[[accounts]]
+  account = "john.doe@exoscale.com"
+  computeEndpoint = "https://funky.exoscale.ch/compute"
+  defaultTemplate = "Linux Ubuntu 18.04 LTS 64-bit"
+  defaultZone = "ch-gva-2"
+  key = "key"
+  name = "john.doe@exoscale.com"
+  secret = "secret"
+
+[[accounts]]
+  account = "jane.doe@exoscale.com"
+  computeEndpoint = "https://another.exoscale.ch/compute"
+  defaultTemplate = "Linux Ubuntu 18.04 LTS 64-bit"
+  defaultZone = "ch-gva-2"
+  key = "another-key"
+  name = "jane.doe@exoscale.com"
+  secret = "another-secret"
