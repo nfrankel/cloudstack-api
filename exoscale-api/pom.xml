@@ -20,7 +20,6 @@
             <plugin>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>exoscale-generate-plugin</artifactId>
-                <version>${project.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -33,7 +32,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>add-source</id>
