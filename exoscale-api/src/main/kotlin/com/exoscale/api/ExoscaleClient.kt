@@ -12,6 +12,8 @@ import javax.crypto.spec.*
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.text.Charsets.UTF_8
 
+typealias Execute = ExoscaleClient
+
 class ExoscaleClient internal constructor (internal val baseUrl: String,
                                            internal val apiKey: String,
                                            internal val apiSecret: String) {
