@@ -50,16 +50,6 @@
                 <version>${kotlin.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.kittinunf.fuel</groupId>
-                <artifactId>fuel</artifactId>
-                <version>1.12.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jsoup</groupId>
-                <artifactId>jsoup</artifactId>
-                <version>1.8.3</version>
-            </dependency>
-            <dependency>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-reflect</artifactId>
                 <version>${kotlin.version}</version>
