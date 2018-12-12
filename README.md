@@ -1,64 +1,40 @@
-# Cloudstack API for the Kotlin language
+# Exoscale API for the Java language
 
-"[Apache CloudStack](https://cloudstack.apache.org/) is open source software designed to deploy and manage large networks of virtual machines".   
+The HTTP API is a first-class citizen to manage Exoscale.
 
-Managing CloudStack is done through a REST API.
+This project is a Java library wrapper around the HTTP API.
+It can also be used in Kotlin.
 
 ## How-to
 
-```$kotlin
-val client = Client("https://api.exoscale.ch/compute",
-        apiKey,
-        apiSecret)
+```java
+public class PrintListAccounts {
 
-fun main(args: Array<String>) {
-    ListVolumes().run(Output.XML)
-    ListFirewallRules().run()
-    ListResourceLimits().run()
+    public static void main(String[] args) {
+        ExoscaleClient client = ExoscaleClientBuilderKt.withDefaultAccount();
+        ListAccounts command = new ListAccounts();
+        ListAccountsResult result = client.invoke(command);
+        List<Account> accounts = result.listaccountsresponse.getAccount();
+        for (Account account: accounts) {
+            System.out.println("account = " + account);
+        }
+    }
 }
-
-fun Command.run(output: Output = Output.JSON) = client.execute(this, output).third.fold(
-        { println(it) },
-        { throw it })
 ```
 
 ## Design principles
 
 * Every command is designed as a class
-* Required arguments are passed as constructor arguments
-* Optional arguments are passed inside a single `Map<String,String>` argument
-
-```$kotlin
-class ListVolumes(parameters: Map<String, String> = mapOf()) : Command("listVolumes", parameters)
-
-class ListVolumesOnFiler(val poolname: String, 
-                         parameters: Map<String, String> = mapOf()) : Command("listVolumesOnFiler", parameters)
-```
+* Every result is designed as a class
+* As much typing as possible
 
 ## Compatibility
 
-The library is compatible with version 4.11.
+The library is compatible with version 4.4 of the Cloudstack API
 
-To generate the library for other versions:
+## Updating the API
+
+To generate the library:
  
- * clone the project
- * change the `cloudstack-api` POM configuration:  
-
-```$xml
-<plugin>
-    <groupId>${project.groupId}</groupId>
-    <artifactId>cloudstack-maven-plugin</artifactId>
-    <version>${project.version}</version>
-    <executions>
-        <execution>
-            <goals>
-                <goal>generate</goal>
-            </goals>
-            <phase>generate-sources</phase>
-        </execution>
-    </executions>
-    <configuration>
-        <version>4.11</version>
-    </configuration>
-</plugin>
-```
+ * Store the result of `exo api api list` as `exoscale-generate-plugin/src/main/resources/api.json`  
+ * Run `./mvnw install` in the project's root folder
