@@ -33,6 +33,7 @@ fun JSONObject.toCommandSpec(): FileSpec {
     } else arrayListOf()
     val constructor = FunSpec.constructorBuilder()
         .addParameters(constructorParameters)
+        .addAnnotation(JvmOverloads::class)
         .build()
     val resultType = ClassName(PACKAGE_NAME, resultClassName)
     val commandSupertype = ClassName(PACKAGE_NAME, COMMAND_CLASS_NAME_SUFFIX).parameterizedBy(resultType)

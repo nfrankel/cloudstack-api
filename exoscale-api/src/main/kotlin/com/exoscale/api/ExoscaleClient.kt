@@ -23,7 +23,7 @@ class ExoscaleClient internal constructor(internal val baseUrl: String,
         init(SecretKeySpec(apiSecret.encode(), HMAC_SHA1))
     }
 
-    operator fun <R : Result> invoke(command: Command<R>, output: Output = JSON): R {
+    @JvmOverloads operator fun <R : Result> invoke(command: Command<R>, output: Output = JSON): R {
         val parametersMap = mapOf("command" to command.commandId, "response" to output.type, "apikey" to apiKey)
             .plus(command::class.declaredMemberProperties.filter { it.name != "resultType" }
                 .associateBy(
