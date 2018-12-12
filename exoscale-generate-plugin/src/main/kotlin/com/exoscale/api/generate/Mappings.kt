@@ -17,7 +17,7 @@ private const val COUNT_KEY = "count"
 private const val REQUIRED_KEY = "required"
 private const val RESPONSE_KEY = "response"
 
-private const val COMMAND_ID_ATTR_NAME = "commandId"
+private const val COMMAND_ATTR_NAME = "command"
 private const val RESULT_TYPE_ATTR_NAME = "resultType"
 
 private const val LIST_COMMAND_PREFIX = "list"
@@ -37,7 +37,7 @@ fun JSONObject.toCommandSpec(): FileSpec {
         .build()
     val resultType = ClassName(PACKAGE_NAME, resultClassName)
     val commandSupertype = ClassName(PACKAGE_NAME, COMMAND_CLASS_NAME_SUFFIX).parameterizedBy(resultType)
-    val commandIdProperty = PropertySpec.builder(COMMAND_ID_ATTR_NAME, String::class.asTypeName())
+    val commandIdProperty = PropertySpec.builder(COMMAND_ATTR_NAME, String::class.asTypeName())
         .addModifiers(OVERRIDE)
         .initializer("\"$name\"")
         .build()

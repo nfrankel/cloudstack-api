@@ -1,3 +1,4 @@
+@file:JvmName("ExoscaleClientBuilder")
 package com.exoscale.api
 
 import com.uchuhimo.konf.Config
