@@ -29,6 +29,7 @@ internal val JSONObject.isRequired: Boolean
 internal fun JSONObject.toConstructorParameterSpec(): ParameterSpec {
     val type = computeParameterType()
     return ParameterSpec.builder(getString(NAME_KEY), type)
+        .addAnnotation(suppressUnusedWarning)
         .addKdoc("${toDoc()}${System.lineSeparator()}")
         .apply {
         if (type is ParameterizedTypeName) {
@@ -62,6 +63,10 @@ internal fun JSONObject.computeParameterType(): TypeName {
 }
 
 internal fun JSONObject.toDoc() = getString("description")
+
+private val suppressUnusedWarning = AnnotationSpec.builder(Suppress::class.java.asClassName())
+    .addMember("\"UNUSED_PARAMETER\"")
+    .build()
 
 private val mappings = mapOf<String, KClass<*>>(
     "uuid" to UUID::class,
