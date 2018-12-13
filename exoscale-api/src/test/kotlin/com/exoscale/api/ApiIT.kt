@@ -1,0 +1,24 @@
+package com.exoscale.api
+
+import org.testng.annotations.Test
+import strikt.api.expect
+import strikt.assertions.isEqualTo
+
+private const val ACCOUNT = "nicolas.frankel@exoscale.ch"
+
+class ApiIT {
+
+    @Test
+    fun `should find the correct number of accounts`() {
+        val result = withAccount(ACCOUNT)(ListAccounts())
+        expect {
+            that(result.listaccountsresponse) {
+                get { count }.isEqualTo(1)
+            }
+            that(result.listaccountsresponse.Account.size).isEqualTo(1)
+            that(result.listaccountsresponse.Account[0]) {
+                get { name }.isEqualTo(ACCOUNT)
+            }
+        }
+    }
+}

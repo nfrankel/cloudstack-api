@@ -17,3 +17,13 @@ defaultaccount = "john.doe@exoscale.com"
   key = "another-key"
   name = "jane.doe@exoscale.com"
   secret = "another-secret"
+
+
+[[accounts]]
+  account = "nicolas.frankel@exoscale.ch"
+  computeEndpoint = "https://ppapi.exoscale.com/compute"
+  defaultTemplate = "Linux Ubuntu 18.04 LTS 64-bit"
+  defaultZone = "ch-gva-2"
+  key = "EXOcd21dfde0097ac21b6604468"
+  name = "nicolas.frankel@exoscale.ch"
+  secret = "SNTMtLIHiVTURZdai9laK0naILzGb1SLDxnwPwB5FAE"
