@@ -29,11 +29,10 @@ fun JSONObject.toCommandSpec(): FileSpec {
         getJSONArray(PARAMS_KEY)
             .map { it as JSONObject }
             .sortedByDescending { it.isRequired }
-            .map { it.toCommandParameterSpec() }
+            .map { it.toCommandConstructorParameterSpec() }
     } else arrayListOf()
     val constructor = FunSpec.constructorBuilder()
         .addParameters(constructorParameters)
-        .addAnnotation(JvmOverloads::class)
         .build()
     val resultType = ClassName(PACKAGE_NAME, resultClassName)
     val commandSupertype = ClassName(PACKAGE_NAME, COMMAND_CLASS_NAME_SUFFIX).parameterizedBy(resultType)
@@ -45,11 +44,18 @@ fun JSONObject.toCommandSpec(): FileSpec {
         .addModifiers(OVERRIDE)
         .initializer("${resultType.canonicalName}::class.java")
         .build()
+    val properties: List<PropertySpec> = if (has(PARAMS_KEY)) {
+        getJSONArray(PARAMS_KEY)
+            .map { it as JSONObject }
+            .filter { !it.isRequired }
+            .map { it.toCommandPropertySpec() }
+    } else arrayListOf()
     val commandType = TypeSpec.classBuilder(name.capitalize())
         .addSuperinterface(commandSupertype)
         .primaryConstructor(constructor)
         .addProperty(commandIdProperty)
         .addProperty(resultTypeProperty)
+        .addProperties(properties)
         .build()
     return FileSpec.builder(PACKAGE_NAME, name.capitalize())
         .addType(commandType)
@@ -95,7 +101,7 @@ fun JSONObject.toListResultSpec(): FileSpec {
 
 fun JSONObject.toSingleResultSpec(): FileSpec {
     val constructorParameters: List<ParameterSpec> = if (has(RESPONSE_KEY)) getJSONArray(RESPONSE_KEY)
-        .map { (it as JSONObject).toCommandParameterSpec() }
+        .map { (it as JSONObject).toCommandConstructorParameterSpec() }
     else arrayListOf()
     val constructor = FunSpec.constructorBuilder()
         .addParameters(constructorParameters)
@@ -142,7 +148,7 @@ private val JSONObject.isRequired: Boolean
 private val JSONObject.hasListResult: Boolean
     get() = name.startsWith(LIST_COMMAND_PREFIX)
 
-private fun JSONObject.toCommandParameterSpec(): ParameterSpec {
+private fun JSONObject.toCommandConstructorParameterSpec(): ParameterSpec {
     val type = computeParameterType()
     return ParameterSpec.builder(getString(NAME_KEY), type).apply {
         if (type is ParameterizedTypeName) {
@@ -151,7 +157,24 @@ private fun JSONObject.toCommandParameterSpec(): ParameterSpec {
                 type.rawType == Set::class.asTypeName() -> defaultValue("setOf()")
                 type.rawType == Map::class.asTypeName() -> defaultValue("mapOf()")
             }
-        } else if (type.isNullable) defaultValue("null")
+        } else if (type.isNullable) {
+            defaultValue("null")
+        }
+    }.build()
+}
+
+private fun JSONObject.toCommandPropertySpec(): PropertySpec {
+    val type = computeParameterType()
+    return PropertySpec.builder(getString(NAME_KEY), type).mutable(true).apply {
+        if (type is ParameterizedTypeName) {
+            when {
+                type.rawType == List::class.asTypeName() -> initializer("arrayListOf()")
+                type.rawType == Set::class.asTypeName() -> initializer("setOf()")
+                type.rawType == Map::class.asTypeName() -> initializer("mapOf()")
+            }
+        } else if (type.isNullable) {
+            initializer("null")
+        }
     }.build()
 }
 
@@ -161,7 +184,6 @@ private fun JSONObject.toItemResultPropertySpec(): PropertySpec {
         .mutable()
         .initializer("null")
         .build()
-
 }
 
 private fun JSONObject.computePropertyType(): TypeName {

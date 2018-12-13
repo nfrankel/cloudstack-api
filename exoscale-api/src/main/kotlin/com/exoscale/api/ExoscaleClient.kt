@@ -25,7 +25,9 @@ class ExoscaleClient internal constructor(internal val baseUrl: String,
 
     @JvmOverloads operator fun <R : Result> invoke(command: Command<R>, output: Output = JSON): R {
         val parametersMap = mapOf("response" to output.type, "apikey" to apiKey)
-            .plus(command::class.declaredMemberProperties.filter { it.name != "resultType" }
+            .plus(command::class.declaredMemberProperties
+                .filter { it.name != "resultType" }
+                .filter { it.getter.call(command) != null }
                 .associateBy(
                     { it.name },
                     { it.getter.call(command) as String }
