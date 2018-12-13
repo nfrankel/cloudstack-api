@@ -41,6 +41,7 @@ internal fun JSONObject.toCommandSpec(): FileSpec {
     val commandType = TypeSpec.classBuilder(name.capitalize())
         .addSuperinterface(commandSupertype)
         .primaryConstructor(constructor)
+        .addKdoc("${toDoc()}.${System.lineSeparator()}${System.lineSeparator()}")
         .addProperty(commandIdProperty)
         .addProperty(resultTypeProperty)
         .addProperties(properties)

@@ -28,7 +28,9 @@ internal val JSONObject.isRequired: Boolean
 
 internal fun JSONObject.toConstructorParameterSpec(): ParameterSpec {
     val type = computeParameterType()
-    return ParameterSpec.builder(getString(NAME_KEY), type).apply {
+    return ParameterSpec.builder(getString(NAME_KEY), type)
+        .addKdoc("${toDoc()}${System.lineSeparator()}")
+        .apply {
         if (type is ParameterizedTypeName) {
             when {
                 type.rawType == List::class.asTypeName() -> defaultValue("arrayListOf()")
@@ -58,6 +60,8 @@ internal fun JSONObject.computeParameterType(): TypeName {
         else -> base.asTypeName().copy(!isRequired)
     }
 }
+
+internal fun JSONObject.toDoc() = getString("description")
 
 private val mappings = mapOf<String, KClass<*>>(
     "uuid" to UUID::class,
