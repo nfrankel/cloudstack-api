@@ -6,7 +6,7 @@ import strikt.assertions.isEqualTo
 
 private const val ACCOUNT = "nicolas.frankel@exoscale.ch"
 
-class ApiIT {
+class AccountIT {
 
     @Test
     fun `should find the correct number of accounts`() {
