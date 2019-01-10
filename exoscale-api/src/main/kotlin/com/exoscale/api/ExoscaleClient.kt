@@ -34,7 +34,7 @@ class ExoscaleClient internal constructor(internal val baseUrl: String,
                 }
                 .associateBy(
                     { it.name },
-                    { it.getter.call(command) as String }
+                    { it.getter.call(command).toString() }
                 ))
         val response = baseUrl.httpGet(parametersMap.toListWithSignature())
             .responseObject(object : ResponseDeserializable<R> {
