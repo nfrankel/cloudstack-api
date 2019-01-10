@@ -28,6 +28,10 @@ class ExoscaleClient internal constructor(internal val baseUrl: String,
             .plus(command::class.declaredMemberProperties
                 .filter { it.name != "resultType" }
                 .filter { it.getter.call(command) != null }
+                .filter {
+                    val att = it.getter.call(command)
+                    !(att is Map<*,*> || att is Collection<*> ) // TODO Check how to handle multi-valued parameters
+                }
                 .associateBy(
                     { it.name },
                     { it.getter.call(command) as String }
