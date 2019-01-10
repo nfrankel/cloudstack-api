@@ -4,8 +4,6 @@ import org.testng.annotations.Test
 import strikt.api.expect
 import strikt.assertions.isEqualTo
 
-private const val ACCOUNT = "nicolas.frankel@exoscale.ch"
-
 class AccountIT {
 
     @Test
