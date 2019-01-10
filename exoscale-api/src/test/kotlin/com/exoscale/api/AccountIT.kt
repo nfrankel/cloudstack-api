@@ -13,8 +13,8 @@ class AccountIT {
             that(result.listaccountsresponse) {
                 get { count }.isEqualTo(1)
             }
-            that(result.listaccountsresponse.Account.size).isEqualTo(1)
-            that(result.listaccountsresponse.Account[0]) {
+            that(result.listaccountsresponse.account.size).isEqualTo(1)
+            that(result.listaccountsresponse.account[0]) {
                 get { name }.isEqualTo(ACCOUNT)
             }
         }

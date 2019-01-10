@@ -24,12 +24,14 @@ internal fun JSONObject.toSingleResultSpec(): FileSpec {
     val constructor = FunSpec.constructorBuilder()
         .addParameters(constructorParameters)
         .build()
-    val resultType = TypeSpec.classBuilder(resultClassName)
+    val resultTypeBuilder = TypeSpec.classBuilder(resultClassName)
         .addSuperinterface(ClassName(PACKAGE_NAME, "Result"))
         .primaryConstructor(constructor)
-        .build()
+    constructorParameters.forEach {
+        resultTypeBuilder.addProperty(PropertySpec.builder(it.name, it.type).initializer(it.name).build())
+    }
     return FileSpec.builder(PACKAGE_NAME, resultClassName)
-        .addType(resultType)
+        .addType(resultTypeBuilder.build())
         .build()
 }
 
@@ -43,7 +45,7 @@ internal fun JSONObject.toListResultSpec(): FileSpec {
             .mutable()
             .build())
         .build()
-    val collectionProp = PropertySpec.Companion.builder(itemName, List::class.asClassName().parameterizedBy(itemClassName))
+    val collectionProp = PropertySpec.builder(itemName.toLowerCase(), List::class.asClassName().parameterizedBy(itemClassName))
         .mutable()
         .addModifiers(KModifier.LATEINIT)
         .build()
