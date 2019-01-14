@@ -12,6 +12,7 @@ internal const val PACKAGE_NAME = "com.exoscale.api"
 internal const val RESULT_CLASS_NAME_SUFFIX = "Result"
 
 internal const val NAME_KEY = "name"
+private const val ASYNC_KEY = "isasync"
 private const val REQUIRED_KEY = "required"
 
 internal val JSONObject.resultClassName
@@ -21,10 +22,12 @@ internal val JSONObject.name
     get() = getString(NAME_KEY)
 
 internal val JSONObject.isRequired: Boolean
-    get() {
-        return if (has(REQUIRED_KEY)) getBoolean(REQUIRED_KEY)
-        else true
-    }
+    get()= if (has(REQUIRED_KEY)) getBoolean(REQUIRED_KEY)
+           else false
+
+internal val JSONObject.isAsync: Boolean
+    get() = if (has(ASYNC_KEY)) getBoolean(ASYNC_KEY)
+            else false
 
 internal fun JSONObject.toConstructorParameterSpec(): ParameterSpec {
     val type = computeParameterType()
@@ -64,7 +67,7 @@ internal fun JSONObject.computeParameterType(): TypeName {
 
 internal fun JSONObject.toDoc() = getString("description")
 
-private val suppressUnusedWarning = AnnotationSpec.builder(Suppress::class.java.asClassName())
+internal val suppressUnusedWarning = AnnotationSpec.builder(Suppress::class.java.asClassName())
     .addMember("\"UNUSED_PARAMETER\"")
     .build()
 

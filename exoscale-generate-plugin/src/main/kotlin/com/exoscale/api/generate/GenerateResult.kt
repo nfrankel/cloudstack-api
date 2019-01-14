@@ -6,6 +6,7 @@ import org.json.JSONObject
 
 private const val COUNT_KEY = "count"
 private const val RESPONSE_KEY = "response"
+private const val JOB_ID_KEY = "jobid"
 
 private const val LIST_COMMAND_PREFIX = "list"
 
@@ -14,6 +15,7 @@ private val JSONObject.hasListResult: Boolean
 
 internal fun JSONObject.toResultSpec(): FileSpec {
     return if (hasListResult) toListResultSpec()
+    else if (isAsync) toAsyncResultSpec()
     else toSingleResultSpec()
 }
 
@@ -30,6 +32,19 @@ internal fun JSONObject.toSingleResultSpec(): FileSpec {
     constructorParameters.forEach {
         resultTypeBuilder.addProperty(PropertySpec.builder(it.name, it.type).initializer(it.name).build())
     }
+    return FileSpec.builder(PACKAGE_NAME, resultClassName)
+        .addType(resultTypeBuilder.build())
+        .build()
+}
+
+internal fun JSONObject.toAsyncResultSpec(): FileSpec {
+    val property = PropertySpec.builder(JOB_ID_KEY, String::class)
+        .mutable(true)
+        .addModifiers(KModifier.LATEINIT)
+        .build()
+    val resultTypeBuilder = TypeSpec.classBuilder(resultClassName)
+        .addSuperinterface(ClassName(PACKAGE_NAME, "Result"))
+        .addProperty(property)
     return FileSpec.builder(PACKAGE_NAME, resultClassName)
         .addType(resultTypeBuilder.build())
         .build()

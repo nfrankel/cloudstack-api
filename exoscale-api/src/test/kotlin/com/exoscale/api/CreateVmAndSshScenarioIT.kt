@@ -52,14 +52,13 @@ class CreateVmAndSshScenarioIT {
         "should resolve service offering id",
         "should delete VM if it exists"])
     fun `should create VM`() {
-        val result = withAccount(ACCOUNT)(DeployVirtualMachine(name = vmName,
+        val result: DeployVirtualMachineResult = withAccount(ACCOUNT)(DeployVirtualMachine(name = vmName,
             displayname = "Java Test Box",
             zoneid = zoneId as UUID,
             templateid = templateId as UUID,
             keypair = "auto",
             serviceofferingid = serviceOfferingId as UUID))
-        vmId = result.id
-        ip = result.publicip
+        println(result.jobid)
     }
 
     @Test(dependsOnMethods = ["should create VM"])

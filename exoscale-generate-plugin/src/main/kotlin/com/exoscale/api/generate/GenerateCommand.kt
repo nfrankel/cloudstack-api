@@ -35,7 +35,6 @@ internal fun JSONObject.toCommandSpec(): FileSpec {
     val properties: List<PropertySpec> = if (has(PARAMS_KEY)) {
         getJSONArray(PARAMS_KEY)
             .map { it as JSONObject }
-            .filter { !it.isRequired }
             .map { it.toCommandPropertySpec() }
     } else arrayListOf()
     val commandType = TypeSpec.classBuilder(name.capitalize())
@@ -53,15 +52,8 @@ internal fun JSONObject.toCommandSpec(): FileSpec {
 
 private fun JSONObject.toCommandPropertySpec(): PropertySpec {
     val type = computeParameterType()
-    return PropertySpec.builder(getString(NAME_KEY), type).mutable(true).apply {
-        if (type is ParameterizedTypeName) {
-            when {
-                type.rawType == List::class.asTypeName() -> initializer("arrayListOf()")
-                type.rawType == Set::class.asTypeName() -> initializer("setOf()")
-                type.rawType == Map::class.asTypeName() -> initializer("mapOf()")
-            }
-        } else if (type.isNullable) {
-            initializer("null")
-        }
-    }.build()
+    return PropertySpec.builder(getString(NAME_KEY), type)
+        .mutable(true)
+        .initializer(name)
+        .build()
 }
